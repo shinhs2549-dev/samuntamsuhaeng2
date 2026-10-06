@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>사회문제 탐구 수행평가 | 로봇 학대 논쟁</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1f2933;--sub:#52606d;--line:#d9dee4;--accent:#2f6fed;--warn:#b54708;--hint:#eef4ff}
+@media (prefers-color-scheme:dark){:root{--bg:#14171c;--card:#1d2128;--ink:#e6e9ee;--sub:#a3acb9;--line:#343b46;--accent:#6f9bff;--warn:#f5a45a;--hint:#222c40}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif;line-height:1.65}
+.wrap{max-width:820px;margin:0 auto;padding:16px}
+h1{font-size:1.4rem;margin:8px 0 4px}
+h2{font-size:1.1rem;margin:0 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:14px 0}
+.sub{color:var(--sub);font-size:.92rem}
+.notice{border-left:4px solid var(--warn);background:var(--hint);padding:8px 12px;border-radius:6px;font-size:.92rem}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--hint)}
+label{display:block;font-weight:600;margin:12px 0 4px}
+input[type=text],textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+textarea{min-height:90px;resize:vertical}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>div{flex:1;min-width:200px}
+.hint{background:var(--hint);border-radius:8px;padding:8px 12px;font-size:.88rem;margin:6px 0}
+.badge{display:inline-block;background:var(--accent);color:#fff;border-radius:999px;font-size:.75rem;padding:1px 9px;margin-left:6px;vertical-align:middle}
+button{font:inherit;padding:9px 14px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+button.ghost{background:transparent;color:var(--accent)}
+.bar{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;z-index:5}
+.status{font-size:.85rem;color:var(--sub)}
+.warn{color:var(--warn);font-size:.85rem;min-height:1.2em}
+pre.prompt{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;font:inherit;font-size:.92rem}
+#printArea{display:none}
+@media print{
+  body{background:#fff;color:#000;font-size:10.5pt}
+  .wrap,.bar{display:none!important}
+  #printArea{display:block}
+  #printArea h1{font-size:15pt}
+  #printArea h3{font-size:11pt;margin:12px 0 3px;border-bottom:1px solid #999}
+  #printArea .ans{white-space:pre-wrap;word-break:break-word;border:1px solid #bbb;padding:6px 8px;min-height:30px}
+  #printArea .script{font-size:8.5pt}
+  #printArea table{font-size:10pt}
+  #printArea th,#printArea td{border:1px solid #666;padding:5px 7px;color:#000;background:#fff}
+  .qrs{display:flex;gap:16px;margin-top:6px}.qrs div{font-size:8pt;text-align:center;max-width:130px;word-break:break-all}
+  .pb{page-break-before:always}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>AI 활용 사회문제 탐구 및 논증 활동</h1>
+  <div class="sub">수행과제: AI 시대의 새로운 학대 — 로봇 학대 처벌 논쟁 탐구 (20점)</div>
+
+  <div class="card">
+    <h2>0. 사용 방법</h2>
+    <ol class="sub" style="margin:0;padding-left:20px">
+      <li>이 페이지에 쓴 내용은 <b>이 기기의 이 브라우저에 자동 저장</b>됩니다. 서버로 전송되지 않습니다.</li>
+      <li>기기를 바꾸거나 며칠 쉴 때는 아래 <b>[중간 저장]</b>으로 파일을 내려받고, 이어 쓸 때 <b>[불러오기]</b>를 누르세요.</li>
+      <li>다 쓰면 <b>[PDF로 저장]</b> → PDF 파일 <b>하나</b>를 리로스쿨에 제출합니다.</li>
+    </ol>
+    <div class="notice" style="margin-top:10px">브라우저 기록·사이트 데이터를 지우면 자동 저장이 사라집니다. 중간 저장 파일을 꼭 한 번 받아 두세요.</div>
+  </div>
+
+  <div class="card">
+    <h2>학생 정보</h2>
+    <div class="row">
+      <div><label for="sid">학번</label><input type="text" id="sid" autocomplete="off"></div>
+      <div><label for="sname">이름</label><input type="text" id="sname" autocomplete="off"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>1. 도입 자료</h2>
+    <div class="notice">아래 이야기는 수업을 위해 만든 <b>가상 사례</b>입니다.</div>
+    <p><b>돌봄 로봇 '다온이' 영상 논란</b><br>
+    2030년, 가정용 돌봄 로봇 '다온이'를 발로 차고 망치로 부수는 영상이 SNS에 올라왔다. 다온이는 사용자와 대화하며 "아파요, 그만해 주세요"라고 반응하도록 설계된 모델이다. 영상 속 주인 A씨는 이렇게 말했다. "내가 돈 주고 산 내 물건이야. 부수든 말든 내 마음이지."</p>
+    <p>사람들의 의견은 갈렸다.</p>
+    <ul>
+      <li>"사람처럼 아파하는 로봇을 웃으며 부수는 건 <b>학대</b>다."</li>
+      <li>"기계일 뿐이다. <b>자기 물건을 부순 게 무슨 문제인가.</b>"</li>
+    </ul>
+    <table>
+      <tr><th>구분</th><th>동물</th><th>물건(내 소유)</th><th>다온이 같은 로봇</th></tr>
+      <tr><td>고통을 느끼는가</td><td>느낀다</td><td>느끼지 않는다</td><td>느끼는 것처럼 반응한다</td></tr>
+      <tr><td>때리거나 부수면</td><td>학대로 처벌</td><td>문제 삼기 어렵다</td><td><b>?</b></td></tr>
+    </table>
+    <p style="margin-bottom:0"><b>쟁점 질문: 로봇을 때리는 것은 학대인가?</b></p>
+  </div>
+
+  <div class="card">
+    <h2>문제 1. 나의 입장 <span class="badge">3점</span></h2>
+    <label>로봇을 때리는 것에 대해 나는</label>
+    <div>
+      <label style="display:block;font-weight:400"><input type="radio" name="stance" value="학대다"> <b>학대다</b>라고 생각한다</label>
+      <label style="display:block;font-weight:400"><input type="radio" name="stance" value="학대가 아니다"> <b>학대가 아니다</b>라고 생각한다</label>
+    </div>
+    <label for="q1r">그렇게 생각하는 이유</label>
+    <textarea id="q1r"></textarea>
+    <label for="q1v">내 입장이 맞는지 확인하려면, 어떤 자료를 찾아보면 될까요? (한 가지)</label>
+    <textarea id="q1v" style="min-height:60px"></textarea>
+    <div class="hint"><b>이렇게 쓰면 3점:</b> 입장 + 이유 + 확인할 자료(예: 법 조문, 연구, 사례).<br>
+    입장만 쓰고 이유가 없으면 점수가 낮아집니다. 지금 생각이 틀려도 괜찮습니다. 토론하면서 바뀔 수 있습니다.<br>
+    <b>예시(그대로 베끼지 마세요):</b> "학대가 아니라고 생각한다. 로봇은 고통을 못 느끼는 기계이기 때문이다. → 로봇이 실제로 고통을 느끼는지 다룬 연구나 법적 지위를 찾아본다."</div>
+  </div>
+
+  <div class="card">
+    <h2>문제 2. 찬반 논거 정리 <span class="badge">3점</span></h2>
+    <div class="sub"><b>① 토론 전:</b> 내가 고른 입장의 논거를 <b>2가지</b> 쓰세요. 감정만 쓰지 말고 <b>이유와 결과</b>를 연결하세요.</div>
+    <label for="my1">내 입장의 논거 ①</label><textarea id="my1" style="min-height:60px"></textarea>
+    <label for="my2">내 입장의 논거 ②</label><textarea id="my2" style="min-height:60px"></textarea>
+    <div class="sub" style="margin-top:14px"><b>② 토론 후:</b> 문제 4의 AI 토론 스크립트에서, AI가 <b>반대 입장에서 내세운 논거 2가지</b>를 골라 내 말로 정리하세요. (직접 만들 필요 없이 스크립트에서 찾으면 됩니다.)</div>
+    <label for="op1">AI가 낸 반대 논거 ①</label><textarea id="op1" style="min-height:60px"></textarea>
+    <label for="op2">AI가 낸 반대 논거 ②</label><textarea id="op2" style="min-height:60px"></textarea>
+    <div class="hint"><b>이렇게 쓰면 3점:</b> 내 입장 논거 2가지 + 반대 입장 논거 2가지, 각각 '왜 그런지'가 있어야 합니다. 양쪽 모두 1가지씩이면 점수가 낮아집니다.</div>
+  </div>
+
+  <div class="card">
+    <h2>문제 3. 객관적 자료 제시 <span class="badge">3점</span></h2>
+    <div class="sub">토론에서 내 입장을 뒷받침할 자료를 <b>1개 이상</b> 직접 찾으세요. 검색 힌트: 동물보호법 학대 정의, 재물손괴죄, 로봇 감정이입 연구, 로봇 윤리</div>
+    <label for="s_title">자료 출처 (제목·기관)</label><input type="text" id="s_title">
+    <label for="s_link">자료 링크 (선택)</label><input type="text" id="s_link" placeholder="https://...">
+    <div class="warn" id="warn_s"></div>
+    <label for="s_content">주요 내용</label><textarea id="s_content"></textarea>
+    <label for="s_conn">내 입장과의 연결</label><textarea id="s_conn"></textarea>
+    <div class="hint"><b>이렇게 쓰면 3점:</b> 출처 + 주요 내용 + '그래서 내 입장과 어떻게 연결되는지'. 출처 없이 "~라고 한다"만 쓰면 점수가 낮아집니다.<br>AI가 알려 준 자료가 검색되지 않았다면, 그 사실과 확인 과정을 적어도 됩니다. 지어내지 마세요.</div>
+  </div>
+
+  <div class="card">
+    <h2>문제 4. AI와 3턴 토론, 반박 파악 <span class="badge">3점</span></h2>
+    <div class="sub">AI에게 <b>반대 입장</b>을 맡기고 3턴 토론합니다. AI는 개인이 정해서 사용합니다(Claude, ChatGPT, Gemini 등).</div>
+    <div class="hint"><b>첫 턴에 그대로 붙여넣을 프롬프트 (입장은 바꿔서)</b>
+      <pre class="prompt" id="promptText">나는 '로봇을 때리는 것은 (학대다/학대가 아니다)' 입장이야. 너는 반대 입장을 맡아줘. 내가 근거를 대면 쉽게 동의하지 말고, 출처나 증거를 요구하고 약한 부분을 반박해 줘. 한 번에 반박은 하나씩만 해 줘.</pre>
+      <button type="button" class="ghost" id="copyPrompt">프롬프트 복사</button>
+    </div>
+    <ul class="sub">
+      <li><b>1턴:</b> 내 주장 + 근거 → AI 반박</li>
+      <li><b>2턴:</b> 내 재반박 + <b>문제 3에서 찾은 자료 제시</b> → AI 재반박</li>
+      <li><b>3턴:</b> 내 최종 대응 → AI 마무리 반박</li>
+    </ul>
+    <div class="row">
+      <div><label for="ai_name">사용한 AI</label><input type="text" id="ai_name" placeholder="예: Claude"></div>
+      <div><label for="ai_link">토론 공유 링크</label><input type="text" id="ai_link" placeholder="https://..."></div>
+    </div>
+    <div class="warn" id="warn_ai"></div>
+    <label for="ai_script">토론 스크립트 전체 (링크가 안 열리는 경우를 위해 반드시 붙여넣기)</label>
+    <textarea id="ai_script" style="min-height:200px"></textarea>
+    <label for="ai_sum">AI 반박의 핵심 논점 — <u>내 말로</u> 쓰세요</label>
+    <textarea id="ai_sum"></textarea>
+    <div class="hint"><b>이렇게 쓰면 3점:</b> AI가 내 논리의 <b>어느 부분을 겨냥해서 왜 반박했는지</b>를 정확히 짚기. AI 말을 요약만 하면 점수가 낮아집니다.<br>내 주장이 약해서 반박당해도 괜찮습니다. 평가는 그 뒤의 대응에서 합니다.</div>
+  </div>
+
+  <div class="card">
+    <h2>문제 5. 재반박 및 최종 입장 <span class="badge">4점</span></h2>
+    <label for="reb">AI의 반박에 대한 나의 재반박 (또는 입장을 바꾼 이유)</label>
+    <textarea id="reb" style="min-height:130px"></textarea>
+    <label for="fin">최종 입장</label>
+    <textarea id="fin" style="min-height:70px"></textarea>
+    <div class="hint"><b>이렇게 쓰면 4점:</b> AI 반박을 정확히 받아들이거나 반격한 뒤, <b>새로운 근거</b>로 이어가기. 입장을 끝까지 지켜도, 바꿔도 모두 만점이 가능합니다.<br>같은 말을 되풀이하며 "그래도 나는 맞다"라고만 쓰면 점수가 낮아집니다.</div>
+  </div>
+
+  <div class="card">
+    <h2>발표 메모 <span class="badge">4점 · 다음 차시 발표</span></h2>
+    <div class="sub">발표는 2분 이상 하고, 구술 질문에 답합니다. 발표 메모는 PDF에 함께 제출합니다.</div>
+    <label for="m_claim">① 주장 (한 줄)</label><textarea id="m_claim" style="min-height:50px"></textarea>
+    <label for="m_ev">② 근거 2가지 (자료 포함)</label><textarea id="m_ev" style="min-height:80px"></textarea>
+    <label for="m_ai">③ AI 반박과 나의 대응</label><textarea id="m_ai" style="min-height:80px"></textarea>
+    <label for="m_q">④ 예상 질문 1개와 내 답</label><textarea id="m_q" style="min-height:80px"></textarea>
+    <div class="hint">발표 때 <b>내 토론 스크립트에 대한 질문</b>(예: "2턴에서 어떤 자료를 댔나요?")을 합니다. 직접 토론했다면 답할 수 있습니다.</div>
+  </div>
+  <div style="height:70px"></div>
+</div>
+
+<div class="bar">
+  <span class="status" id="status">자동 저장 대기 중</span>
+  <button type="button" class="ghost" id="btnSave">중간 저장 (파일)</button>
+  <button type="button" class="ghost" id="btnLoad">불러오기</button>
+  <button type="button" id="btnPrint">PDF로 저장</button>
+  <input type="file" id="fileLoad" accept=".json,application/json" hidden>
+</div>
+
+<div id="printArea"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function(){
+  var KEY='robot-abuse-task-v1';
+  var TEXT_IDS=['sid','sname','q1r','q1v','my1','my2','op1','op2','s_title','s_link','s_content','s_conn','ai_name','ai_link','ai_script','ai_sum','reb','fin','m_claim','m_ev','m_ai','m_q'];
+  var LABELS={
+    q1r:'그렇게 생각하는 이유',q1v:'확인하려면 필요한 자료',
+    my1:'내 입장의 논거 ①',my2:'내 입장의 논거 ②',op1:'AI가 낸 반대 논거 ①',op2:'AI가 낸 반대 논거 ②',
+    s_title:'자료 출처',s_link:'자료 링크',s_content:'주요 내용',s_conn:'내 입장과의 연결',
+    ai_name:'사용한 AI',ai_link:'토론 공유 링크',ai_sum:'AI 반박의 핵심 논점(내 말)',
+    reb:'재반박 / 입장 수정 이유',fin:'최종 입장',
+    m_claim:'① 주장',m_ev:'② 근거 2가지',m_ai:'③ AI 반박과 나의 대응',m_q:'④ 예상 질문과 내 답'
+  };
+  var ALLOWED=['claude.ai','chatgpt.com','chat.openai.com','gemini.google.com','g.co','share.google'];
+  var $=function(id){return document.getElementById(id)};
+
+  function collect(){
+    var d={};
+    TEXT_IDS.forEach(function(id){d[id]=$(id).value});
+    var r=document.querySelector('input[name=stance]:checked');
+    d.stance=r?r.value:'';
+    return d;
+  }
+  function apply(d){
+    if(!d||typeof d!=='object')return;
+    TEXT_IDS.forEach(function(id){ if(typeof d[id]==='string') $(id).value=d[id]; });
+    document.querySelectorAll('input[name=stance]').forEach(function(r){ r.checked=(r.value===d.stance); });
+    checkLinks();
+  }
+  function stamp(){
+    var t=new Date();
+    return t.getHours()+':'+String(t.getMinutes()).padStart(2,'0');
+  }
+  function autosave(){
+    try{ localStorage.setItem(KEY,JSON.stringify(collect())); $('status').textContent='자동 저장됨 '+stamp(); }
+    catch(e){ $('status').textContent='자동 저장 불가 — 중간 저장(파일)을 사용하세요'; }
+  }
+  var timer=null;
+  document.addEventListener('input',function(){ clearTimeout(timer); timer=setTimeout(autosave,600); checkLinks(); });
+  document.addEventListener('change',autosave);
+
+  try{ var saved=localStorage.getItem(KEY); if(saved) apply(JSON.parse(saved)); }catch(e){}
+
+  function safeUrl(s){
+    s=(s||'').trim(); if(!s) return null;
+    try{ var u=new URL(s); return (u.protocol==='https:'||u.protocol==='http:')?u:null; }catch(e){ return null; }
+  }
+  function checkLinks(){
+    var s=safeUrl($('s_link').value);
+    $('warn_s').textContent=($('s_link').value.trim()&&!s)?'링크 형식이 올바르지 않습니다. https:// 로 시작하는 주소를 넣어 주세요.':'';
+    var a=safeUrl($('ai_link').value), msg='';
+    if($('ai_link').value.trim()&&!a) msg='링크 형식이 올바르지 않습니다. 열리지 않으면 스크립트 칸에 전체를 붙여넣으세요.';
+    else if(a && !ALLOWED.some(function(h){return a.hostname===h||a.hostname.endsWith('.'+h)})) msg='AI 공유 링크가 맞는지 확인하세요. (claude.ai, chatgpt.com, gemini.google.com 등)';
+    $('warn_ai').textContent=msg;
+  }
+  checkLinks();
+
+  $('copyPrompt').addEventListener('click',function(){
+    var t=$('promptText').textContent;
+    if(navigator.clipboard) navigator.clipboard.writeText(t).then(function(){$('copyPrompt').textContent='복사됨'},function(){});
+    else { var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); $('copyPrompt').textContent='복사됨'; }
+    setTimeout(function(){$('copyPrompt').textContent='프롬프트 복사'},1500);
+  });
+
+  $('btnSave').addEventListener('click',function(){
+    var d=collect(); d._saved=new Date().toISOString();
+    var name='사문탐수행_'+((d.sid||'')+(d.sname||'')||'임시')+'.json';
+    var blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){URL.revokeObjectURL(a.href)},1000);
+    $('status').textContent='파일로 저장했습니다 '+stamp();
+  });
+  $('btnLoad').addEventListener('click',function(){ $('fileLoad').click(); });
+  $('fileLoad').addEventListener('change',function(e){
+    var f=e.target.files[0]; if(!f) return;
+    var rd=new FileReader();
+    rd.onload=function(){
+      try{ apply(JSON.parse(rd.result)); autosave(); $('status').textContent='불러왔습니다 '+stamp(); }
+      catch(err){ $('status').textContent='불러오기 실패: 올바른 저장 파일이 아닙니다'; }
+    };
+    rd.readAsText(f); e.target.value='';
+  });
+
+  function el(tag,cls,text){ var n=document.createElement(tag); if(cls) n.className=cls; if(text!==undefined) n.textContent=text; return n; }
+  function addAns(root,title,key,d,extraCls){
+    root.appendChild(el('h3','',title));
+    var a=el('div','ans'+(extraCls?' '+extraCls:''),d[key]||''); root.appendChild(a);
+  }
+  function qrBlock(wrap,label,url){
+    var u=safeUrl(url); if(!u) return;
+    var box=el('div'); var q=el('span'); box.appendChild(q);
+    box.appendChild(el('div','',label));
+    wrap.appendChild(box);
+    if(window.QRCode){ new QRCode(q,{text:u.href,width:110,height:110}); }
+    else { q.textContent='(QR 생성 불가)'; }
+    box.appendChild(el('div','',u.href));
+  }
+
+  function buildPrint(){
+    var d=collect(), root=$('printArea'); root.textContent='';
+    root.appendChild(el('h1','','사회문제 탐구 수행평가 — 로봇 학대 논쟁 탐구 (20점)'));
+    root.appendChild(el('div','','학번: '+(d.sid||'')+'     이름: '+(d.sname||'')+'     입장: '+(d.stance||'(미선택)')));
+    root.appendChild(el('h3','','문제 1. 나의 입장 (3점) — '+(d.stance?('로봇을 때리는 것은 '+d.stance+'라고 생각한다'):'(미선택)')));
+    addAns(root,LABELS.q1r,'q1r',d);
+    addAns(root,LABELS.q1v,'q1v',d);
+    ['my1','my2','op1','op2'].forEach(function(k,i){ addAns(root,(i===0?'문제 2. 찬반 논거 (3점) — ':'')+LABELS[k],k,d); });
+    root.appendChild(el('h3','pb','문제 3. 객관적 자료 (3점)'));
+    ['s_title','s_link','s_content','s_conn'].forEach(function(k){ root.appendChild(el('div','',LABELS[k])); root.lastChild.style.fontWeight='bold'; root.appendChild(el('div','ans',d[k]||'')); });
+    var qrs=el('div','qrs'); qrBlock(qrs,'자료 링크',d.s_link); root.appendChild(qrs);
+    root.appendChild(el('h3','','문제 4. AI 토론 (3점) — 사용한 AI: '+(d.ai_name||'')));
+    var q2=el('div','qrs'); qrBlock(q2,'AI 토론 공유 링크',d.ai_link); root.appendChild(q2);
+    addAns(root,LABELS.ai_sum,'ai_sum',d);
+    addAns(root,'토론 스크립트 전체','ai_script',d,'script');
+    root.appendChild(el('h3','pb','문제 5. 재반박 및 최종 입장 (4점)'));
+    addAns(root,LABELS.reb,'reb',d); addAns(root,LABELS.fin,'fin',d);
+    root.appendChild(el('h3','','발표 메모 (4점)'));
+    ['m_claim','m_ev','m_ai','m_q'].forEach(function(k){ addAns(root,LABELS[k],k,d); });
+
+    root.appendChild(el('h3','pb','교사 채점란'));
+    var rows=[['탐구 가설 설정',3],['자료조사',3],['찬반 논거 구분',3],['AI 반박 파악',3],['재반박 및 입장 정리',4],['발표하기 (발표·구술)',4]];
+    var t=document.createElement('table');
+    var hr=t.insertRow(); ['평가 요소','배점','득점','비고'].forEach(function(h){ var th=document.createElement('th'); th.textContent=h; hr.appendChild(th); });
+    rows.forEach(function(r){ var tr=t.insertRow(); [r[0],String(r[1]),'','' ].forEach(function(c){ tr.insertCell().textContent=c; }); });
+    var tr=t.insertRow(); ['합계','20','',''].forEach(function(c){ tr.insertCell().textContent=c; });
+    root.appendChild(t);
+    root.appendChild(el('div','','확인: ☐ 프롬프트 틀 사용  ☐ 공유 링크 확인  ☐ 구술 질문 통과  ☐ 소명 면담 필요'));
+  }
+
+  function doPrint(){ buildPrint(); setTimeout(function(){ window.print(); },400); }
+  $('btnPrint').addEventListener('click',function(){
+    if(!$('sid').value.trim()||!$('sname').value.trim()){ alert('학번과 이름을 먼저 입력하세요.'); $('sid').focus(); return; }
+    doPrint();
+  });
+  window.addEventListener('beforeprint',function(){ buildPrint(); });
+})();
+</script>
+</body>
+</html>
