@@ -30,23 +30,48 @@ button.ghost{background:transparent;color:var(--accent)}
 .status{font-size:.85rem;color:var(--sub)}
 .warn{color:var(--warn);font-size:.85rem;min-height:1.2em}
 pre.prompt{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;font:inherit;font-size:.92rem}
+button:disabled{opacity:.6;cursor:wait}
+.inapp{display:none;background:#fff4e5;color:#7a2e00;border-bottom:2px solid #f5a45a;padding:10px 14px;font-size:.92rem}
+.inapp b{color:#b54708}
+.inapp .btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.inapp button{padding:7px 11px;font-size:.88rem}
+#pastePanel{display:none;margin-top:8px}
+#pastePanel textarea{min-height:70px}
+.linkbtn{background:none;border:none;color:var(--accent);padding:0;text-decoration:underline;font-size:.88rem}
+/* PDF/인쇄용 문서 서식 (화면 밖에서 PDF로 변환할 때도 쓰임) */
+.pdfdoc{background:#fff;color:#000;font-family:"Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif;font-size:10.5pt;line-height:1.55}
+.pdfdoc h1{font-size:15pt;margin:0 0 6px}
+.pdfdoc h3{font-size:11pt;margin:12px 0 3px;border-bottom:1px solid #999;padding-bottom:2px}
+.pdfdoc .lbl{font-weight:bold;margin-top:6px}
+.pdfdoc .ans{border:1px solid #bbb;padding:6px 8px;min-height:30px}
+.pdfdoc .ans .line{white-space:pre-wrap;word-break:break-word;min-height:1em}
+.pdfdoc .script{font-size:8.5pt;line-height:1.45}
+.pdfdoc table{font-size:10pt;border-collapse:collapse;width:100%}
+.pdfdoc th,.pdfdoc td{border:1px solid #666;padding:5px 7px;color:#000;background:#fff}
+.pdfdoc .qrs{display:flex;gap:16px;margin-top:6px}
+.pdfdoc .qrs>div{font-size:8pt;text-align:center;max-width:130px;word-break:break-all}
+#pdfStage{position:fixed;left:-10000px;top:0;width:700px;padding:0}
 #printArea{display:none}
 @media print{
-  body{background:#fff;color:#000;font-size:10.5pt}
-  .wrap,.bar{display:none!important}
+  body{background:#fff;color:#000}
+  .wrap,.bar,.inapp{display:none!important}
   #printArea{display:block}
-  #printArea h1{font-size:15pt}
-  #printArea h3{font-size:11pt;margin:12px 0 3px;border-bottom:1px solid #999}
-  #printArea .ans{white-space:pre-wrap;word-break:break-word;border:1px solid #bbb;padding:6px 8px;min-height:30px}
-  #printArea .script{font-size:8.5pt}
-  #printArea table{font-size:10pt}
-  #printArea th,#printArea td{border:1px solid #666;padding:5px 7px;color:#000;background:#fff}
-  .qrs{display:flex;gap:16px;margin-top:6px}.qrs div{font-size:8pt;text-align:center;max-width:130px;word-break:break-all}
   .pb{page-break-before:always}
 }
 </style>
 </head>
 <body>
+<div class="inapp" id="inapp">
+  <b>⚠ 카카오톡·네이버 같은 앱 안에서 열린 화면입니다.</b><br>
+  이 화면에서는 <b>PDF 저장이 안 될 수 있어요.</b> 크롬(아이폰은 사파리)으로 열어서 작성하세요.
+  <div id="inappMove" style="display:none;margin-top:4px">이미 쓴 내용이 있다면: ① [작성 내용 복사] → ② 크롬/사파리로 열기 → ③ 맨 위 '붙여넣어 불러오기'</div>
+  <div class="btns">
+    <button type="button" id="btnExt">크롬/사파리로 열기</button>
+    <button type="button" class="ghost" id="btnCopyUrl">주소 복사</button>
+    <button type="button" class="ghost" id="btnCopyData" style="display:none">작성 내용 복사</button>
+  </div>
+  <div id="inappMsg" style="margin-top:4px;font-size:.85rem"></div>
+</div>
 <div class="wrap">
   <h1>AI 활용 사회문제 탐구 및 논증 활동</h1>
   <div class="sub">수행과제: AI 시대의 새로운 학대 — 로봇 학대 처벌 논쟁 탐구 (20점)</div>
@@ -59,6 +84,12 @@ pre.prompt{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line
       <li>다 쓰면 <b>[PDF로 저장]</b> → PDF 파일 <b>하나</b>를 리로스쿨에 제출합니다.</li>
     </ol>
     <div class="notice" style="margin-top:10px">브라우저 기록·사이트 데이터를 지우면 자동 저장이 사라집니다. 중간 저장 파일을 꼭 한 번 받아 두세요.</div>
+    <div style="margin-top:8px"><button type="button" class="linkbtn" id="btnPasteOpen">다른 브라우저에서 복사해 온 내용 붙여넣어 불러오기</button></div>
+    <div id="pastePanel">
+      <textarea id="pasteBox" placeholder="[작성 내용 복사]로 복사한 내용을 여기에 붙여넣으세요"></textarea>
+      <button type="button" id="btnPasteApply" style="margin-top:6px">불러오기</button>
+      <span class="status" id="pasteMsg"></span>
+    </div>
   </div>
 
   <div class="card">
@@ -178,9 +209,11 @@ pre.prompt{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line
   <input type="file" id="fileLoad" accept=".json,application/json" hidden>
 </div>
 
-<div id="printArea"></div>
+<div id="printArea" class="pdfdoc"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js" async
+  onerror="var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';document.head.appendChild(s);"></script>
 <script>
 (function(){
   var KEY='robot-abuse-task-v1';
@@ -264,9 +297,15 @@ pre.prompt{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line
   });
 
   function el(tag,cls,text){ var n=document.createElement(tag); if(cls) n.className=cls; if(text!==undefined) n.textContent=text; return n; }
+  // 줄 단위로 나눠 넣어야 PDF 페이지 경계에서 글자가 반쯤 잘리지 않음
+  function ansBox(text,extraCls){
+    var a=el('div','ans'+(extraCls?' '+extraCls:''));
+    String(text||'').replace(/\r\n?/g,'\n').split('\n').forEach(function(ln){ a.appendChild(el('div','line',ln)); });
+    return a;
+  }
   function addAns(root,title,key,d,extraCls){
     root.appendChild(el('h3','',title));
-    var a=el('div','ans'+(extraCls?' '+extraCls:''),d[key]||''); root.appendChild(a);
+    root.appendChild(ansBox(d[key],extraCls));
   }
   function qrBlock(wrap,label,url){
     var u=safeUrl(url); if(!u) return;
@@ -278,8 +317,8 @@ pre.prompt{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line
     box.appendChild(el('div','',u.href));
   }
 
-  function buildPrint(){
-    var d=collect(), root=$('printArea'); root.textContent='';
+  function buildPrint(root){
+    var d=collect(); root=root||$('printArea'); root.textContent='';
     root.appendChild(el('h1','','사회문제 탐구 수행평가 — 로봇 학대 논쟁 탐구 (20점)'));
     root.appendChild(el('div','','학번: '+(d.sid||'')+'     이름: '+(d.sname||'')+'     입장: '+(d.stance||'(미선택)')));
     root.appendChild(el('h3','','문제 1. 나의 입장 (3점) — '+(d.stance?('로봇을 때리는 것은 '+d.stance+'라고 생각한다'):'(미선택)')));
@@ -287,7 +326,7 @@ pre.prompt{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line
     addAns(root,LABELS.q1v,'q1v',d);
     ['my1','my2','op1','op2'].forEach(function(k,i){ addAns(root,(i===0?'문제 2. 찬반 논거 (3점) — ':'')+LABELS[k],k,d); });
     root.appendChild(el('h3','pb','문제 3. 객관적 자료 (3점)'));
-    ['s_title','s_link','s_content','s_conn'].forEach(function(k){ root.appendChild(el('div','',LABELS[k])); root.lastChild.style.fontWeight='bold'; root.appendChild(el('div','ans',d[k]||'')); });
+    ['s_title','s_link','s_content','s_conn'].forEach(function(k){ root.appendChild(el('div','lbl',LABELS[k])); root.appendChild(ansBox(d[k])); });
     var qrs=el('div','qrs'); qrBlock(qrs,'자료 링크',d.s_link); root.appendChild(qrs);
     root.appendChild(el('h3','','문제 4. AI 토론 (3점) — 사용한 AI: '+(d.ai_name||'')));
     var q2=el('div','qrs'); qrBlock(q2,'AI 토론 공유 링크',d.ai_link); root.appendChild(q2);
@@ -308,12 +347,85 @@ pre.prompt{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line
     root.appendChild(el('div','','확인: ☐ 프롬프트 틀 사용  ☐ 공유 링크 확인  ☐ 구술 질문 통과  ☐ 소명 면담 필요'));
   }
 
-  function doPrint(){ buildPrint(); setTimeout(function(){ window.print(); },400); }
+  // 예비 방법: 브라우저 인쇄 창에서 'PDF로 저장'
+  function doPrint(){ buildPrint(); window.print(); }
+
+  // 기본 방법: 인쇄 창 없이 PDF 파일을 바로 내려받기
+  function makePdf(){
+    var btn=$('btnPrint'), d=collect();
+    var name='사문탐수행_'+(d.sid||'').trim()+(d.sname||'').trim()+'.pdf';
+    var stage=document.createElement('div'); stage.id='pdfStage';
+    var doc=el('div','pdfdoc'); stage.appendChild(doc); document.body.appendChild(stage);
+    buildPrint(doc);
+    btn.disabled=true; $('status').textContent='PDF 만드는 중… (10초 정도 걸릴 수 있어요)';
+    function done(){ btn.disabled=false; if(stage.parentNode) stage.parentNode.removeChild(stage); }
+    setTimeout(function(){ // QR 그림이 그려질 시간
+      // 휴대폰(특히 아이폰)은 너무 큰 그림을 못 만들어 빈 PDF가 나오므로, 글 길이에 맞춰 해상도를 낮춤
+      var h=doc.scrollHeight||1000;
+      var scale=Math.max(0.8,Math.min(2,Math.sqrt(15000000/(700*h))));
+      html2pdf().set({
+        margin:[12,12,12,12],
+        filename:name,
+        image:{type:'jpeg',quality:0.92},
+        html2canvas:{scale:scale,backgroundColor:'#ffffff',useCORS:true,logging:false,scrollX:0,scrollY:0},
+        jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+        pagebreak:{mode:['css','legacy'],before:'.pb',avoid:['h3','tr','.line','.lbl','.qrs']}
+      }).from(doc).save().then(function(){
+        done(); $('status').textContent='PDF를 저장했습니다 '+stamp()+' — 다운로드 폴더(파일 앱)를 확인하세요';
+      },function(){
+        done(); $('status').textContent='PDF 바로 저장 실패 → 인쇄 창에서 "PDF로 저장"을 고르세요'; doPrint();
+      });
+    },300);
+  }
+
   $('btnPrint').addEventListener('click',function(){
     if(!$('sid').value.trim()||!$('sname').value.trim()){ alert('학번과 이름을 먼저 입력하세요.'); $('sid').focus(); return; }
-    doPrint();
+    if(window.html2pdf) makePdf(); else doPrint();
   });
   window.addEventListener('beforeprint',function(){ buildPrint(); });
+
+  // ===== 앱 안 브라우저(카카오톡, 네이버, 인스타, 리로스쿨 앱 등) 안내 =====
+  var ua=navigator.userAgent||'';
+  var isKakao=/KAKAOTALK/i.test(ua), isLine=/\bLine\//i.test(ua);
+  var isAndroid=/Android/i.test(ua);
+  var isIOS=/iPhone|iPad|iPod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  var inApp=isKakao||isLine||/NAVER\(inapp|Instagram|FBAN|FBAV|FB_IAB|DaumApps|everytimeApp|BAND\/|; wv\)/i.test(ua)
+            ||(isIOS&&!/Safari\//i.test(ua));
+  function copyText(t,okMsg){
+    function fallback(){
+      var ta=document.createElement('textarea'); ta.value=t; ta.setAttribute('readonly','');
+      ta.style.position='fixed'; ta.style.top='0'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0,t.length);
+      var ok=false; try{ ok=document.execCommand('copy'); }catch(e){}
+      ta.remove(); $('inappMsg').textContent=ok?okMsg:'복사가 안 됐어요. 주소창의 주소를 길게 눌러 직접 복사하세요.';
+    }
+    if(navigator.clipboard&&window.isSecureContext) navigator.clipboard.writeText(t).then(function(){ $('inappMsg').textContent=okMsg; },fallback);
+    else fallback();
+  }
+  if(inApp){
+    $('inapp').style.display='block';
+    var hasData=TEXT_IDS.some(function(id){ return $(id).value.trim(); });
+    if(hasData){ $('inappMove').style.display='block'; $('btnCopyData').style.display=''; }
+    $('btnExt').addEventListener('click',function(){
+      var url=location.href;
+      if(isKakao){ location.href='kakaotalk://web/openExternal?url='+encodeURIComponent(url); }
+      else if(isLine){ location.href=url+(url.indexOf('?')<0?'?':'&')+'openExternalBrowser=1'; }
+      else if(isAndroid){ location.href='intent://'+url.replace(/^https?:\/\//,'')+'#Intent;scheme=https;package=com.android.chrome;end'; }
+      else { copyText(url,'주소를 복사했어요. 화면의 ⋯ 메뉴에서 "Safari로 열기"를 누르거나, 사파리 주소창에 붙여넣으세요.'); }
+    });
+    $('btnCopyUrl').addEventListener('click',function(){ copyText(location.href,'주소를 복사했어요. 크롬/사파리 주소창에 붙여넣으세요.'); });
+    $('btnCopyData').addEventListener('click',function(){ copyText(JSON.stringify(collect()),'작성 내용을 복사했어요. 크롬/사파리에서 이 페이지를 열고 맨 위 "붙여넣어 불러오기"를 누르세요.'); });
+  }
+
+  // ===== 붙여넣어 불러오기 =====
+  $('btnPasteOpen').addEventListener('click',function(){ var p=$('pastePanel'); p.style.display=(p.style.display==='block')?'none':'block'; });
+  $('btnPasteApply').addEventListener('click',function(){
+    try{
+      var d=JSON.parse($('pasteBox').value.trim());
+      if(!d||typeof d!=='object'||!('sid' in d)) throw 0;
+      apply(d); autosave(); $('pasteBox').value=''; $('pasteMsg').textContent='불러왔습니다 '+stamp();
+    }catch(e){ $('pasteMsg').textContent='복사한 내용이 올바르지 않습니다. [작성 내용 복사]로 다시 복사해 주세요.'; }
+  });
 })();
 </script>
 </body>
