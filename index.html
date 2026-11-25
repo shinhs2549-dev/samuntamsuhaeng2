@@ -51,6 +51,14 @@ button:disabled{opacity:.6;cursor:wait}
 .pdfdoc .qrs{display:flex;gap:16px;margin-top:6px}
 .pdfdoc .qrs>div{font-size:8pt;text-align:center;max-width:130px;word-break:break-all}
 #pdfStage{position:fixed;left:-10000px;top:0;width:700px;padding:0}
+/* 아이폰·아이패드: PDF가 다 만들어진 뒤 한 번 더 눌러서 저장하는 창 */
+#pdfPanel{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;align-items:center;justify-content:center;padding:16px}
+#pdfPanel .box{background:var(--card);color:var(--ink);border-radius:14px;padding:18px;max-width:380px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+#pdfPanel .box b{font-size:1.05rem}
+#pdfPanel .box p{margin:6px 0 12px;font-size:.9rem;color:var(--sub)}
+#pdfPanel .box .act{display:block;width:100%;text-align:center;margin:8px 0;padding:11px 14px;border-radius:8px;font:inherit;text-decoration:none;box-sizing:border-box}
+#pdfPanel .box a.act{background:var(--accent);color:#fff;border:1px solid var(--accent)}
+#pdfPanel .box .msg{font-size:.85rem;color:var(--warn);min-height:1.1em}
 #printArea{display:none}
 @media print{
   body{background:#fff;color:#000}
@@ -211,6 +219,18 @@ button:disabled{opacity:.6;cursor:wait}
 
 <div id="printArea" class="pdfdoc"></div>
 
+<div id="pdfPanel" role="dialog" aria-modal="true">
+  <div class="box">
+    <b>PDF가 준비됐어요</b>
+    <p>아래 버튼을 한 번 더 눌러 저장하세요. 저장된 파일은 <b>파일 앱 → 다운로드</b>에 있어요.</p>
+    <a class="act" id="pDown" href="#">① PDF 내려받기</a>
+    <button type="button" class="act" id="pShare">② 공유 → '파일에 저장'</button>
+    <button type="button" class="act ghost" id="pPrint">③ 그래도 안 되면: 인쇄 창에서 저장</button>
+    <div class="msg" id="pMsg"></div>
+    <button type="button" class="act ghost" id="pClose">닫기</button>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js" async
   onerror="var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';document.head.appendChild(s);"></script>
@@ -350,6 +370,38 @@ button:disabled{opacity:.6;cursor:wait}
   // 예비 방법: 브라우저 인쇄 창에서 'PDF로 저장'
   function doPrint(){ buildPrint(); window.print(); }
 
+  // 아이폰·아이패드(사파리) 판별 — 아이패드는 '데스크톱 사이트'로 열리면 Mac처럼 보여서 터치 여부로 함께 확인
+  var IS_IOS=/iPhone|iPad|iPod/i.test(navigator.userAgent||'')||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+
+  // 아이폰 사파리는 버튼을 누르고 몇 초가 지난 뒤(PDF를 다 만든 뒤)에 시작한 다운로드를 소리 없이 막는다.
+  // 그래서 아이폰에서는 PDF를 먼저 만들어 두고, 저장 창의 버튼을 한 번 더 누르게 해서 그 순간에 저장한다.
+  var pdfUrl=null, pdfFile=null;
+  function closePanel(){ $('pdfPanel').style.display='none'; }
+  function openPanel(blob,name){
+    if(pdfUrl){ try{URL.revokeObjectURL(pdfUrl)}catch(e){} }
+    pdfUrl=URL.createObjectURL(blob);
+    try{ pdfFile=new File([blob],name,{type:'application/pdf'}); }catch(e){ pdfFile=null; }
+    var a=$('pDown'); a.href=pdfUrl; a.setAttribute('download',name);
+    var canShare=!!(pdfFile&&navigator.canShare&&navigator.share&&navigator.canShare({files:[pdfFile]}));
+    $('pShare').style.display=canShare?'':'none';
+    $('pMsg').textContent='';
+    $('pdfPanel').style.display='flex';
+  }
+  $('pShare').addEventListener('click',function(){
+    if(!pdfFile) return;
+    navigator.share({files:[pdfFile],title:pdfFile.name}).then(function(){
+      $('pMsg').textContent=''; $('status').textContent='PDF를 공유/저장했습니다 '+stamp();
+    },function(err){
+      if(err&&err.name==='AbortError') return; // 학생이 공유 창을 닫은 경우
+      $('pMsg').textContent='공유가 안 됐어요. ① PDF 내려받기를 눌러 보세요.';
+    });
+  });
+  $('pDown').addEventListener('click',function(){
+    $('status').textContent='PDF를 내려받았습니다 '+stamp()+' — 파일 앱 → 다운로드를 확인하세요';
+  });
+  $('pPrint').addEventListener('click',function(){ closePanel(); doPrint(); });
+  $('pClose').addEventListener('click',closePanel);
+
   // 기본 방법: 인쇄 창 없이 PDF 파일을 바로 내려받기
   function makePdf(){
     var btn=$('btnPrint'), d=collect();
@@ -358,23 +410,43 @@ button:disabled{opacity:.6;cursor:wait}
     var doc=el('div','pdfdoc'); stage.appendChild(doc); document.body.appendChild(stage);
     buildPrint(doc);
     btn.disabled=true; $('status').textContent='PDF 만드는 중… (10초 정도 걸릴 수 있어요)';
-    function done(){ btn.disabled=false; if(stage.parentNode) stage.parentNode.removeChild(stage); }
+    var finished=false;
+    function done(){ finished=true; clearTimeout(guard); btn.disabled=false; if(stage.parentNode) stage.parentNode.removeChild(stage); }
+    function fail(){
+      if(finished) return; done();
+      $('status').textContent='PDF 바로 저장 실패 → 인쇄 창에서 "PDF로 저장"을 고르세요';
+      if(IS_IOS){ // 아이폰은 시간이 지난 뒤 인쇄 창을 열 수 없으므로 버튼으로 안내
+        $('pdfPanel').style.display='flex'; $('pDown').style.display='none'; $('pShare').style.display='none';
+        $('pMsg').textContent='PDF를 만들지 못했어요. ③ 인쇄 창에서 저장을 눌러 주세요.';
+      } else doPrint();
+    }
+    // 너무 오래 걸리면(멈춘 경우) 버튼이 계속 잠겨 있지 않도록
+    var guard=setTimeout(fail,45000);
     setTimeout(function(){ // QR 그림이 그려질 시간
       // 휴대폰(특히 아이폰)은 너무 큰 그림을 못 만들어 빈 PDF가 나오므로, 글 길이에 맞춰 해상도를 낮춤
       var h=doc.scrollHeight||1000;
       var scale=Math.max(0.8,Math.min(2,Math.sqrt(15000000/(700*h))));
-      html2pdf().set({
+      var worker=html2pdf().set({
         margin:[12,12,12,12],
         filename:name,
         image:{type:'jpeg',quality:0.92},
         html2canvas:{scale:scale,backgroundColor:'#ffffff',useCORS:true,logging:false,scrollX:0,scrollY:0},
         jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
         pagebreak:{mode:['css','legacy'],before:'.pb',avoid:['h3','tr','.line','.lbl','.qrs']}
-      }).from(doc).save().then(function(){
-        done(); $('status').textContent='PDF를 저장했습니다 '+stamp()+' — 다운로드 폴더(파일 앱)를 확인하세요';
-      },function(){
-        done(); $('status').textContent='PDF 바로 저장 실패 → 인쇄 창에서 "PDF로 저장"을 고르세요'; doPrint();
-      });
+      }).from(doc);
+      if(IS_IOS){
+        worker.outputPdf('blob').then(function(blob){
+          if(finished) return; done();
+          $('pDown').style.display='';
+          openPanel(blob,name);
+          $('status').textContent='PDF 준비 완료 — 저장 창에서 버튼을 눌러 저장하세요';
+        },fail);
+      } else {
+        worker.save().then(function(){
+          if(finished) return; done();
+          $('status').textContent='PDF를 저장했습니다 '+stamp()+' — 다운로드 폴더(파일 앱)를 확인하세요';
+        },fail);
+      }
     },300);
   }
 
